@@ -20,16 +20,38 @@ def run_helper(*args):
     try: subprocess.run(['sudo', HELPER] + list(args), check=True)
     except Exception as e: print(f"Helper error: {e}")
 
+def _find_hwmon(name):
+    for i in range(20):
+        try:
+            with open(f'/sys/class/hwmon/hwmon{i}/name') as f:
+                if f.read().strip() == name:
+                    return i
+        except: pass
+    return None
+
 def get_cpu_temp():
+    hwmon = _find_hwmon('coretemp')
+    if hwmon is None: return 0
     best = 0
-    for i in range(30):
-        v = read_hwmon(f'/sys/class/hwmon/hwmon8/temp{i}_input')
+    for i in range(1, 30):
+        v = read_hwmon(f'/sys/class/hwmon/hwmon{hwmon}/temp{i}_input')
         if v > best: best = v
     return best // 1000 if best > 1000 else best
 
 def get_gpu_temp():
-    v = read_hwmon('/sys/class/hwmon/hwmon3/temp2_input')
-    return v // 1000 if v > 1000 else v
+    hwmon = _find_hwmon('dell_ddv')
+    if hwmon is None: return 0
+    base = f'/sys/class/hwmon/hwmon{hwmon}'
+    import glob
+    for label_file in glob.glob(f'{base}/temp*_label'):
+        try:
+            with open(label_file) as f:
+                if f.read().strip().lower() == 'video':
+                    input_file = label_file.replace('_label', '_input')
+                    v = read_hwmon(input_file)
+                    return v // 1000 if v > 1000 else v
+        except: pass
+    return 0
 
 def get_fan_rpm(fan):
     for hwmon in range(10):
