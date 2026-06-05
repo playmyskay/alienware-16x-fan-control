@@ -5,7 +5,8 @@ gi.require_version('Adw', '1')
 from gi.repository import Gtk, Adw, GLib
 import subprocess, math
 
-HELPER   = '/home/hbwal/Desktop/fanController/fan_helper.sh'
+import os
+HELPER   = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'fan_helper.sh')
 CPU_COLOR = (0.216, 0.540, 0.867)
 GPU_COLOR = (0.114, 0.620, 0.459)
 MAX_RPM   = 7000
