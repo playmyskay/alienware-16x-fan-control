@@ -9,8 +9,7 @@ achieved through reverse engineering of the ACPI/WMI interface.
 > unanswered for a while, I'm continuing development here, so the codebase
 > will likely diverge from upstream over time.
 
-<img width="918" height="795" alt="image" src="https://github.com/user-attachments/assets/4e1d98ca-fec4-41cd-a11b-a1cf585dfed1" />
-
+<img width="1115" height="1515" alt="Screenshot_20260617_194439" src="https://github.com/user-attachments/assets/de70f447-9db1-4158-9e1e-5ed985a75544" />
 
 
 ## Hardware
