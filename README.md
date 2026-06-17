@@ -23,7 +23,7 @@ achieved through reverse engineering of the ACPI/WMI interface.
 - Machine: Alienware 16X Aurora AC16251
 - CPU: Intel Core Ultra 9 275HX
 - GPU: NVIDIA GeForce RTX 5070 Laptop
-- Tested on: Arch Linux, kernel 6.18.24-1-lts
+- Tested on: Ubuntu 26.04 LTS, kernel 7.0.0-22-generic
 
 ## How it works
 
