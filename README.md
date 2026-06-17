@@ -95,11 +95,13 @@ sudo ./fan_helper.sh profile performance
 
 ## Credits
 
-Developed by Hugo (Hugo2049) with assistance from Claude (Anthropic).
-The reverse engineering methodology, ACPI analysis, and protocol discovery
-were worked out collaboratively through an iterative process of dumping
-tables, reading ASL source, probing WMI interfaces on Windows, and
-testing on Linux via acpi_call.
+Originally developed by Hugo ([Hugo2049](https://github.com/Hugo2049)) with
+assistance from Claude (Anthropic). The reverse engineering methodology,
+ACPI analysis, and protocol discovery were worked out collaboratively
+through an iterative process of dumping tables, reading ASL source,
+probing WMI interfaces on Windows, and testing on Linux via acpi_call.
+
+Many thanks to Hugo for this groundwork — without it, this fork wouldn't exist.
 
 Claude: https://claude.ai
 Anthropic: https://anthropic.com
