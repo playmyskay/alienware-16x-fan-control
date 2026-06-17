@@ -8,6 +8,13 @@ achieved through reverse engineering of the ACPI/WMI interface.
 > pull requests to the upstream repository have unfortunately gone
 > unanswered for a while, I'm continuing development here, so the codebase
 > will likely diverge from upstream over time.
+>
+> Changes made in this fork so far:
+> - Live RPM and temperature graphing in the GUI
+> - Automatic hwmon detection (coretemp/dell_ddv) with improved GPU temperature reading
+> - Custom application icon and window settings
+> - Relative helper script path, independent of the current working directory
+> - Added GPL-2.0 license file
 
 <img width="1115" height="1515" alt="Screenshot_20260617_194439" src="https://github.com/user-attachments/assets/de70f447-9db1-4158-9e1e-5ed985a75544" />
 
