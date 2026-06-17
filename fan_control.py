@@ -2,7 +2,7 @@
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Gtk, Adw, GLib
+from gi.repository import Gtk, Adw, GLib, Gdk
 import subprocess, math
 
 import os
@@ -258,8 +258,13 @@ class FanApp(Adw.Application):
         self.manual_mode = False
 
     def on_activate(self, app):
+        # Register the bundled icon so it works on every desktop manager
+        _icon_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'icons')
+        Gtk.IconTheme.get_for_display(Gdk.Display.get_default()).add_search_path(_icon_dir)
+
         self.win = Adw.ApplicationWindow(application=app)
         self.win.set_title('Fan Control')
+        self.win.set_icon_name('fan-control')
         self.win.set_default_size(500, 960)
         self.win.set_resizable(False)
 
