@@ -3,6 +3,12 @@
 A fan speed controller for the Alienware 16X Aurora (AC16251) on Linux,
 achieved through reverse engineering of the ACPI/WMI interface.
 
+> **Note:** This is a fork of the original project by
+> [Hugo2049](https://github.com/Hugo2049/alienware-16x-fan-control). Since
+> pull requests to the upstream repository have unfortunately gone
+> unanswered for a while, I'm continuing development here, so the codebase
+> will likely diverge from upstream over time.
+
 <img width="918" height="795" alt="image" src="https://github.com/user-attachments/assets/4e1d98ca-fec4-41cd-a11b-a1cf585dfed1" />
 
 
