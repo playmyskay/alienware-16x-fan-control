@@ -1,11 +1,20 @@
 #!/usr/bin/env python3
+import os
+
+# Inject the project directory into XDG_DATA_DIRS *before* GTK is imported so
+# that GTK's icon theme picks up icons/hicolor/... from the start.  This is
+# required when running inside VS Code's snap environment, which resets
+# XDG_DATA_DIRS to snap-only paths before the process starts.
+_project_dir = os.path.dirname(os.path.abspath(__file__))
+_xdg = os.environ.get('XDG_DATA_DIRS', '')
+if _project_dir not in _xdg.split(':'):
+    os.environ['XDG_DATA_DIRS'] = _project_dir + (':' + _xdg if _xdg else '')
+
 import gi
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 from gi.repository import Gtk, Adw, GLib, Gdk
 import subprocess, math
-
-import os
 HELPER   = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'fan_helper.sh')
 CPU_COLOR = (0.216, 0.540, 0.867)
 GPU_COLOR = (0.114, 0.620, 0.459)
@@ -258,12 +267,16 @@ class FanApp(Adw.Application):
         self.manual_mode = False
 
     def on_activate(self, app):
-        # Register the bundled icon so it works on every desktop manager
-        _icon_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'icons')
-        Gtk.IconTheme.get_for_display(Gdk.Display.get_default()).add_search_path(_icon_dir)
-
         self.win = Adw.ApplicationWindow(application=app)
         self.win.set_title('Fan Control')
+
+        # Register the bundled icon – use the window's display (reliable even
+        # inside VS Code's integrated terminal where get_default() may be None)
+        _icon_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'icons')
+        _display = self.win.get_display() or Gdk.Display.get_default()
+        if _display:
+            Gtk.IconTheme.get_for_display(_display).add_search_path(_icon_dir)
+
         self.win.set_icon_name('fan-control')
         self.win.set_default_size(500, 960)
         self.win.set_resizable(False)
