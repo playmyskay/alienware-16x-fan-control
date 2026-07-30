@@ -45,15 +45,21 @@ Only `0x15` was known when this fork started; `0x14` was reverse engineered
 afterwards (see [Discovery Method](#discovery-method)).
 
 CPU fan speed (0-100%):
+```bash
 echo '\_SB.AMWW.WMAX 0 0x15 {0x02,0x32,SPEED,0x00}' > /proc/acpi/call
+```
 
 GPU fan speed (0-100%):
+```bash
 echo '\_SB.AMWW.WMAX 0 0x15 {0x02,0x33,SPEED,0x00}' > /proc/acpi/call
+```
 
 Thermal profiles — activate:
+```bash
 echo '\_SB.AMWW.WMAX 0 0x15 {0x01,ID,0x00,0x00}' > /proc/acpi/call
+```
 
-Where SPEED is a hex value from 0x00 (0%) to 0x64 (100%).
+Where `SPEED` is a hex value from `0x00` (0%) to `0x64` (100%).
 
 ### Fan IDs
 - 0x32 = CPU fan
@@ -86,19 +92,31 @@ Unlike `0x15`, method `0x14` can be safely called repeatedly with no side
 effects — it only queries state.
 
 Get the currently active thermal profile ID (returns one of the IDs above):
-echo '\_SB.AMWW.WMAX 0 0x14 {0x0B,0x00,0x00,0x00}' > /proc/acpi/call; cat /proc/acpi/call
+```bash
+echo '\_SB.AMWW.WMAX 0 0x14 {0x0B,0x00,0x00,0x00}' > /proc/acpi/call
+cat /proc/acpi/call
+```
 
 Get current RPM for a given fan (byte 1 = fan ID):
-echo '\_SB.AMWW.WMAX 0 0x14 {0x05,FAN_ID,0x00,0x00}' > /proc/acpi/call; cat /proc/acpi/call
+```bash
+echo '\_SB.AMWW.WMAX 0 0x14 {0x05,FAN_ID,0x00,0x00}' > /proc/acpi/call
+cat /proc/acpi/call
+```
 
 Get system description (byte 3 of the returned dword = number of profiles in
 the firmware's table, i.e. 5):
-echo '\_SB.AMWW.WMAX 0 0x14 {0x02,0x00,0x00,0x00}' > /proc/acpi/call; cat /proc/acpi/call
+```bash
+echo '\_SB.AMWW.WMAX 0 0x14 {0x02,0x00,0x00,0x00}' > /proc/acpi/call
+cat /proc/acpi/call
+```
 
 Enumerate resource IDs by index (fans first, then temp sensors, then thermal
 profile IDs, all in one flat list — byte 1 = index, starting at 0; returns
 `AE_AML_PACKAGE_LIMIT` once the index runs past the end):
-echo '\_SB.AMWW.WMAX 0 0x14 {0x03,INDEX,0x00,0x00}' > /proc/acpi/call; cat /proc/acpi/call
+```bash
+echo '\_SB.AMWW.WMAX 0 0x14 {0x03,INDEX,0x00,0x00}' > /proc/acpi/call
+cat /proc/acpi/call
+```
 
 On this hardware that enumeration returns, in order: `0x32`, `0x33` (fan
 IDs), `0x101`, `0x106` (temperature sensor IDs), then `0xA0`..`0xA4` (the 5
@@ -119,34 +137,48 @@ profile names 1:1.
 ## Dependencies
 
 Arch Linux:
+```bash
 sudo pacman -S acpi_call-lts python-gobject gtk4 libadwaita
+```
 
 Load module:
+```bash
 sudo modprobe acpi_call
+```
 
 Auto-load on boot:
+```bash
 echo 'acpi_call' | sudo tee /etc/modules-load.d/acpi_call.conf
+```
 
 ## Installation
 
+```bash
 git clone https://github.com/Hugo2049/alienware-16x-fan-control
 cd alienware-16x-fan-control
+```
 
 Add sudoers rule:
+```bash
 echo "$USER ALL=(ALL) NOPASSWD: $(pwd)/fan_helper.sh" | sudo tee /etc/sudoers.d/fancontroller
 sudo chmod 440 /etc/sudoers.d/fancontroller
 chmod +x fan_helper.sh
+```
 
 Run:
+```bash
 python fan_control.py
+```
 
 ## CLI Usage
 
+```bash
 sudo ./fan_helper.sh cpu 75
 sudo ./fan_helper.sh gpu 50
 sudo ./fan_helper.sh both 80 60
 sudo ./fan_helper.sh profile <balanced|balanced-performance|cool|quiet|performance|gameshift>
 sudo ./fan_helper.sh status
+```
 
 ## Discovery Method
 
