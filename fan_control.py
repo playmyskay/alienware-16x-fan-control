@@ -279,7 +279,7 @@ class FanApp(Adw.Application):
 
         self.win.set_icon_name('fan-control')
         self.win.set_default_size(500, 960)
-        self.win.set_resizable(False)
+        self.win.set_resizable(True)
 
         tb = Adw.ToolbarView()
         header = Adw.HeaderBar()
@@ -375,22 +375,26 @@ class FanApp(Adw.Application):
         pl.set_margin_top(12)
         pcard.append(pl)
 
-        prow = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
-        prow.set_homogeneous(True)
-        prow.set_margin_start(12)
-        prow.set_margin_end(12)
-        prow.set_margin_bottom(12)
-
         self.preset_btns = {}
-        for key, label in [('auto','Auto'),('quiet','Quiet'),('balanced','Balanced'),('performance','Performance'),('gameshift','Game Shift')]:
-            btn = Gtk.Button(label=label)
-            btn.connect('clicked', self.on_preset, key)
-            if key == 'balanced':
-                btn.add_css_class('suggested-action')
-            prow.append(btn)
-            self.preset_btns[key] = btn
-
-        pcard.append(prow)
+        preset_rows = [
+            [('auto','Auto'),('cool','Cool'),('quiet','Quiet'),('balanced','Balanced')],
+            [('balanced-performance','Bal. Perf.'),('performance','Performance'),('gameshift','Game Shift')],
+        ]
+        for row_keys in preset_rows:
+            row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+            row.set_homogeneous(True)
+            row.set_margin_start(12)
+            row.set_margin_end(12)
+            if row_keys is preset_rows[-1]:
+                row.set_margin_bottom(12)
+            for key, label in row_keys:
+                btn = Gtk.Button(label=label)
+                btn.connect('clicked', self.on_preset, key)
+                if key == 'balanced':
+                    btn.add_css_class('suggested-action')
+                row.append(btn)
+                self.preset_btns[key] = btn
+            pcard.append(row)
         root.append(pcard)
 
         # Stats row
@@ -483,11 +487,13 @@ class FanApp(Adw.Application):
         self.manual_mode = False
 
         presets = {
-            'auto':        (None, None, 'balanced', 'Auto'),
-            'quiet':       (20,   20,   'quiet',    'Quiet'),
-            'balanced':    (50,   50,   'balanced', 'Balanced'),
-            'performance': (80,   80,   'performance', 'Performance'),
-            'gameshift':   (100,  100,  'gameshift', 'Game Shift'),
+            'auto':                 (None, None, 'balanced',             'Auto'),
+            'cool':                 (35,   35,   'cool',                 'Cool'),
+            'quiet':                (20,   20,   'quiet',                'Quiet'),
+            'balanced':             (50,   50,   'balanced',             'Balanced'),
+            'balanced-performance': (65,   65,   'balanced-performance', 'Balanced Performance'),
+            'performance':          (80,   80,   'performance',          'Performance'),
+            'gameshift':            (100,  100,  'gameshift',            'Game Shift'),
         }
 
         cv, gv, profile, badge_label = presets[key]

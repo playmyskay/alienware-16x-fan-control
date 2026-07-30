@@ -6,6 +6,25 @@ call_acpi() {
     echo "$1" > $ACPI_CALL
 }
 
+call_acpi_get() {
+    echo "$1" > $ACPI_CALL
+    cat $ACPI_CALL | tr -d '\0'
+}
+
+get_current_profile() {
+    local id
+    id=$(call_acpi_get "\_SB.AMWW.WMAX 0 0x14 {0x0B,0x00,0x00,0x00}" | tr -d ' \t\r\n' | tr 'A-F' 'a-f')
+    case "$id" in
+      0xa0) echo "Balanced" ;;
+      0xa1) echo "Balanced Performance" ;;
+      0xa2) echo "Cool" ;;
+      0xa3) echo "Quiet" ;;
+      0xa4) echo "Performance" ;;
+      0xab) echo "Game Shift" ;;
+      *)    echo "Unknown ($id)" ;;
+    esac
+}
+
 find_hwmon_by_name() {
     grep -rl "^${1}$" /sys/class/hwmon/hwmon*/name 2>/dev/null | head -1 | xargs dirname
 }
@@ -93,6 +112,9 @@ print_system_temperatures() {
 }
 
 print_status() {
+    echo "=== Active Profile ==="
+    echo "  $(get_current_profile)"
+    echo ""
     print_fan_speeds
     echo ""
     print_cpu_temperatures
@@ -117,10 +139,12 @@ set_both_fans() {
 
 set_profile() {
     case "$1" in
-      balanced)    call_acpi "\_SB.AMWW.WMAX 0 0x15 {0x01,0xA0,0x00,0x00}" ;;
-      performance) call_acpi "\_SB.AMWW.WMAX 0 0x15 {0x01,0xA1,0x00,0x00}" ;;
-      quiet)       call_acpi "\_SB.AMWW.WMAX 0 0x15 {0x01,0xA3,0x00,0x00}" ;;
-      gameshift)   call_acpi "\_SB.AMWW.WMAX 0 0x15 {0x01,0xAB,0x00,0x00}" ;;
+      balanced)             call_acpi "\_SB.AMWW.WMAX 0 0x15 {0x01,0xA0,0x00,0x00}" ;;
+      balanced-performance) call_acpi "\_SB.AMWW.WMAX 0 0x15 {0x01,0xA1,0x00,0x00}" ;;
+      cool)                 call_acpi "\_SB.AMWW.WMAX 0 0x15 {0x01,0xA2,0x00,0x00}" ;;
+      quiet)                call_acpi "\_SB.AMWW.WMAX 0 0x15 {0x01,0xA3,0x00,0x00}" ;;
+      performance)          call_acpi "\_SB.AMWW.WMAX 0 0x15 {0x01,0xA4,0x00,0x00}" ;;
+      gameshift)            call_acpi "\_SB.AMWW.WMAX 0 0x15 {0x01,0xAB,0x00,0x00}" ;;
       *) echo "Unknown profile: $1"; exit 1 ;;
     esac
 }
@@ -135,7 +159,7 @@ case "$1" in
     echo "Usage: fan_helper.sh cpu <0-100>"
     echo "       fan_helper.sh gpu <0-100>"
     echo "       fan_helper.sh both <cpu%> <gpu%>"
-    echo "       fan_helper.sh profile <balanced|performance|quiet|gameshift>"
+    echo "       fan_helper.sh profile <balanced|balanced-performance|cool|quiet|performance|gameshift>"
     echo "       fan_helper.sh status"
     exit 1
     ;;
