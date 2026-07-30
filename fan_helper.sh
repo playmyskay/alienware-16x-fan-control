@@ -155,12 +155,14 @@ case "$1" in
   both)    set_both_fans "$2" "$3" ;;
   profile) set_profile "$2" ;;
   status)  print_status ;;
+  current-profile) get_current_profile ;;
   *)
     echo "Usage: fan_helper.sh cpu <0-100>"
     echo "       fan_helper.sh gpu <0-100>"
     echo "       fan_helper.sh both <cpu%> <gpu%>"
     echo "       fan_helper.sh profile <balanced|balanced-performance|cool|quiet|performance|gameshift>"
     echo "       fan_helper.sh status"
+    echo "       fan_helper.sh current-profile"
     exit 1
     ;;
 esac

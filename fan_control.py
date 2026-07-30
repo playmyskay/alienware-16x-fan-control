@@ -29,6 +29,26 @@ def run_helper(*args):
     try: subprocess.run(['sudo', HELPER] + list(args), check=True)
     except Exception as e: print(f"Helper error: {e}")
 
+def run_helper_output(*args):
+    try:
+        result = subprocess.run(['sudo', HELPER] + list(args), check=True, capture_output=True, text=True)
+        return result.stdout.strip()
+    except Exception as e:
+        print(f"Helper error: {e}")
+        return None
+
+PROFILE_NAME_TO_KEY = {
+    'Balanced':             'balanced',
+    'Balanced Performance': 'balanced-performance',
+    'Cool':                 'cool',
+    'Quiet':                'quiet',
+    'Performance':          'performance',
+    'Game Shift':           'gameshift',
+}
+
+def get_active_profile():
+    return run_helper_output('current-profile')
+
 def _find_hwmon(name):
     for i in range(20):
         try:
@@ -264,7 +284,8 @@ class FanApp(Adw.Application):
     def __init__(self):
         super().__init__(application_id='com.hbwal.fancontrol')
         self.connect('activate', self.on_activate)
-        self.manual_mode = False
+        self.boost_active = False
+        self.current_profile_key = None
 
     def on_activate(self, app):
         self.win = Adw.ApplicationWindow(application=app)
@@ -304,11 +325,32 @@ class FanApp(Adw.Application):
         t2.add_css_class('dim-label')
         tb2.append(t1)
         tb2.append(t2)
+        self.boost_badge = Gtk.Label(label='Boost')
+        self.boost_badge.add_css_class('tag')
+        self.boost_badge.add_css_class('dim-label')
+        self.boost_badge.set_tooltip_text(
+            'Boost: fan speed is being manually overridden on top of the '
+            'active thermal profile. Pick a preset (or Auto) to release it '
+            'and let that profile manage the fans again.'
+        )
         self.mode_badge = Gtk.Label(label='Auto')
         self.mode_badge.add_css_class('tag')
         tr.append(tb2)
+        tr.append(self.boost_badge)
         tr.append(self.mode_badge)
         root.append(tr)
+
+        # Boost toggle row
+        brow = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+        self.boost_check = Gtk.CheckButton(label='Manual fan boost')
+        self.boost_check.set_tooltip_text(
+            'Enable to manually override the CPU/GPU fan sliders below on '
+            'top of the active profile. Selecting a preset always resets '
+            'this and lets the profile manage the fans again.'
+        )
+        self.boost_check.connect('toggled', self.on_boost_toggle)
+        brow.append(self.boost_check)
+        root.append(brow)
 
         # Gauges row
         gbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
@@ -349,6 +391,7 @@ class FanApp(Adw.Application):
             slider.add_mark(50, Gtk.PositionType.BOTTOM, '50%')
             slider.add_mark(100, Gtk.PositionType.BOTTOM, '100%')
             slider.connect('value-changed', self.on_cpu_slider if side=='cpu' else self.on_gpu_slider)
+            slider.set_sensitive(False)
             card.append(slider)
 
             gbox.append(card)
@@ -390,8 +433,6 @@ class FanApp(Adw.Application):
             for key, label in row_keys:
                 btn = Gtk.Button(label=label)
                 btn.connect('clicked', self.on_preset, key)
-                if key == 'balanced':
-                    btn.add_css_class('suggested-action')
                 row.append(btn)
                 self.preset_btns[key] = btn
             pcard.append(row)
@@ -459,24 +500,49 @@ class FanApp(Adw.Application):
 
         tb.set_content(root)
         self.win.set_content(tb)
+        self.sync_active_profile()
         self.win.present()
 
         self.update_sensors()
         GLib.timeout_add(2000, self.update_sensors)
 
-    def set_manual(self):
+    def sync_active_profile(self):
+        name = get_active_profile()
+        key = PROFILE_NAME_TO_KEY.get(name)
         for b in self.preset_btns.values():
             b.remove_css_class('suggested-action')
-        self.mode_badge.set_label('Manual')
-        self.manual_mode = True
+        if key and key in self.preset_btns:
+            self.preset_btns[key].add_css_class('suggested-action')
+            self.current_profile_key = key
+            self.mode_badge.set_label(name)
+        else:
+            self.mode_badge.set_label(name or 'Unknown')
+
+    def on_boost_toggle(self, check):
+        active = check.get_active()
+        self.cpu_slider.set_sensitive(active)
+        self.gpu_slider.set_sensitive(active)
+        if not active:
+            if self.current_profile_key:
+                run_helper('profile', self.current_profile_key)
+            self.set_boost(False)
+
+    def set_boost(self, active):
+        self.boost_active = active
+        if active:
+            self.boost_badge.remove_css_class('dim-label')
+            self.boost_badge.add_css_class('warning')
+        else:
+            self.boost_badge.remove_css_class('warning')
+            self.boost_badge.add_css_class('dim-label')
 
     def on_cpu_slider(self, s):
-        self.set_manual()
+        self.set_boost(True)
         pct = int(s.get_value())
         run_helper('cpu', str(pct))
 
     def on_gpu_slider(self, s):
-        self.set_manual()
+        self.set_boost(True)
         pct = int(s.get_value())
         run_helper('gpu', str(pct))
 
@@ -484,7 +550,6 @@ class FanApp(Adw.Application):
         for b in self.preset_btns.values():
             b.remove_css_class('suggested-action')
         btn.add_css_class('suggested-action')
-        self.manual_mode = False
 
         presets = {
             'auto':                 (None, None, 'balanced',             'Auto'),
@@ -498,12 +563,13 @@ class FanApp(Adw.Application):
 
         cv, gv, profile, badge_label = presets[key]
         self.mode_badge.set_label(badge_label)
+        self.current_profile_key = profile
         run_helper('profile', profile)
+        self.boost_check.set_active(False)
 
         if cv is not None:
             self.cpu_slider.set_value(cv)
             self.gpu_slider.set_value(gv)
-            run_helper('both', str(cv), str(gv))
 
     def update_badge(self, badge, temp):
         badge.remove_css_class('success')
@@ -520,7 +586,7 @@ class FanApp(Adw.Application):
         cpu_temp = get_cpu_temp()
         gpu_temp = get_gpu_temp()
 
-        if self.manual_mode:
+        if self.boost_active:
             cpu_pct = int(self.cpu_slider.get_value())
             gpu_pct = int(self.gpu_slider.get_value())
         else:
