@@ -390,20 +390,22 @@ class FanApp(Adw.Application):
             slider.add_mark(0, Gtk.PositionType.BOTTOM, '0%')
             slider.add_mark(50, Gtk.PositionType.BOTTOM, '50%')
             slider.add_mark(100, Gtk.PositionType.BOTTOM, '100%')
-            slider.connect('value-changed', self.on_cpu_slider if side=='cpu' else self.on_gpu_slider)
+            handler_id = slider.connect('value-changed', self.on_cpu_slider if side=='cpu' else self.on_gpu_slider)
             slider.set_sensitive(False)
             card.append(slider)
 
             gbox.append(card)
 
             if side == 'cpu':
-                self.cpu_badge  = badge
-                self.cpu_gauge  = gauge
-                self.cpu_slider = slider
+                self.cpu_badge   = badge
+                self.cpu_gauge   = gauge
+                self.cpu_slider  = slider
+                self.cpu_slider_handler = handler_id
             else:
-                self.gpu_badge  = badge
-                self.gpu_gauge  = gauge
-                self.gpu_slider = slider
+                self.gpu_badge   = badge
+                self.gpu_gauge   = gauge
+                self.gpu_slider  = slider
+                self.gpu_slider_handler = handler_id
 
         root.append(gbox)
 
@@ -568,8 +570,13 @@ class FanApp(Adw.Application):
         self.boost_check.set_active(False)
 
         if cv is not None:
+            self.cpu_slider.handler_block(self.cpu_slider_handler)
             self.cpu_slider.set_value(cv)
+            self.cpu_slider.handler_unblock(self.cpu_slider_handler)
+
+            self.gpu_slider.handler_block(self.gpu_slider_handler)
             self.gpu_slider.set_value(gv)
+            self.gpu_slider.handler_unblock(self.gpu_slider_handler)
 
     def update_badge(self, badge, temp):
         badge.remove_css_class('success')
