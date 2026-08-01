@@ -422,7 +422,7 @@ class FanApp(Adw.Application):
 
         self.preset_btns = {}
         preset_rows = [
-            [('auto','Auto'),('cool','Cool'),('quiet','Quiet'),('balanced','Balanced')],
+            [('cool','Cool'),('quiet','Quiet'),('balanced','Balanced')],
             [('balanced-performance','Bal. Perf.'),('performance','Performance'),('gameshift','Game Shift')],
         ]
         for row_keys in preset_rows:
@@ -554,7 +554,6 @@ class FanApp(Adw.Application):
         btn.add_css_class('suggested-action')
 
         presets = {
-            'auto':                 (None, None, 'balanced',             'Auto'),
             'cool':                 (35,   35,   'cool',                 'Cool'),
             'quiet':                (20,   20,   'quiet',                'Quiet'),
             'balanced':             (50,   50,   'balanced',             'Balanced'),
@@ -569,14 +568,13 @@ class FanApp(Adw.Application):
         run_helper('profile', profile)
         self.boost_check.set_active(False)
 
-        if cv is not None:
-            self.cpu_slider.handler_block(self.cpu_slider_handler)
-            self.cpu_slider.set_value(cv)
-            self.cpu_slider.handler_unblock(self.cpu_slider_handler)
+        self.cpu_slider.handler_block(self.cpu_slider_handler)
+        self.cpu_slider.set_value(cv)
+        self.cpu_slider.handler_unblock(self.cpu_slider_handler)
 
-            self.gpu_slider.handler_block(self.gpu_slider_handler)
-            self.gpu_slider.set_value(gv)
-            self.gpu_slider.handler_unblock(self.gpu_slider_handler)
+        self.gpu_slider.handler_block(self.gpu_slider_handler)
+        self.gpu_slider.set_value(gv)
+        self.gpu_slider.handler_unblock(self.gpu_slider_handler)
 
     def update_badge(self, badge, temp):
         badge.remove_css_class('success')
