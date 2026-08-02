@@ -329,11 +329,12 @@ class FanApp(Adw.Application):
         self.boost_badge.add_css_class('tag')
         self.boost_badge.add_css_class('dim-label')
         self.boost_badge.set_tooltip_text(
-            'Boost: fan speed is being manually overridden on top of the '
-            'active thermal profile. Pick a preset (or Auto) to release it '
-            'and let that profile manage the fans again.'
+            'A fan speed override is currently active: the CPU and/or GPU '
+            'fan is running at a fixed speed you set manually, instead of '
+            'the speed curve of the active profile. Click any preset to '
+            'clear it.'
         )
-        self.mode_badge = Gtk.Label(label='Auto')
+        self.mode_badge = Gtk.Label(label='...')
         self.mode_badge.add_css_class('tag')
         tr.append(tb2)
         tr.append(self.boost_badge)
@@ -344,9 +345,10 @@ class FanApp(Adw.Application):
         brow = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
         self.boost_check = Gtk.CheckButton(label='Manual fan boost')
         self.boost_check.set_tooltip_text(
-            'Enable to manually override the CPU/GPU fan sliders below on '
-            'top of the active profile. Selecting a preset always resets '
-            'this and lets the profile manage the fans again.'
+            'Unlocks the CPU/GPU sliders below so you can set a fixed fan '
+            'speed yourself, overriding the active profile. Clicking any '
+            'preset turns this off again and hands fan control back to '
+            'that profile.'
         )
         self.boost_check.connect('toggled', self.on_boost_toggle)
         brow.append(self.boost_check)
