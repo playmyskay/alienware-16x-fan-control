@@ -19,7 +19,7 @@ achieved through reverse engineering of the ACPI/WMI interface.
 > - Discovered and added the 2 missing hardware thermal profiles (`cool`, true `performance`) and corrected the mislabeled `performance` → `balanced-performance`, in both the CLI and the GUI presets
 > - Resizable main window
 
-<img width="1115" height="1515" alt="Screenshot_20260617_194439" src="https://github.com/user-attachments/assets/de70f447-9db1-4158-9e1e-5ed985a75544" />
+<img width="614" height="1144" alt="Fan Control GUI showing live sensor readouts, the 6 thermal profile presets, and the Manual fan boost toggle" src="screenshots/fan_control.png" />
 
 
 ## Hardware
